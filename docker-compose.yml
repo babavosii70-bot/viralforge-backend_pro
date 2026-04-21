@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=forgeengine_secure_key
+    depends_on:
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
